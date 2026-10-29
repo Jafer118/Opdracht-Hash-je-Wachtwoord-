@@ -8,4 +8,4 @@ This project is a secure command-line login and registration system written in *
 2. Open your terminal or command prompt.
 3. Run the script using the following command:
    ```bash
-   php script.php
+   php Script.php
