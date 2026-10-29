@@ -1,65 +1,73 @@
 <?php
-// Simulated in-memory database
+// Simulated in-memory database storage
 $database = [];
 
-function registreerGebruiker($email, $wachtwoord, $wachtwoordBevestiging) {
-    try {
-        // Check for empty input
-        if (empty($email) || empty($wachtwoord) || empty($wachtwoordBevestiging)) {
-            throw new Exception("Alle velden moeten ingevuld zijn.");
-        }
+echo "=== REGISTRATION SYSTEM ===\n";
 
-        // Check whether both passwords match
-        if ($wachtwoord !== $wachtwoordBevestiging) {
-            throw new Exception("De ingevoerde wachtwoorden komen niet overeen.");
-        }
+// 1. Password input and user registration (Interactive user input)
+$email = readline("Enter your email address: ");
+$password = readline("Enter your password: ");
+$passwordConfirm = readline("Confirm your password: ");
 
-        // Prevent duplicate registration
-        global $database;
-        if (isset($database[$email])) {
-            throw new Exception("Dit e-mailadres is al geregistreerd.");
-        }
-
-        // Hash the password securely
-        $gehashteWachtwoord = password_hash($wachtwoord, PASSWORD_DEFAULT);
-        if ($gehashteWachtwoord === false) {
-            throw new Exception("Het genereren van de hash is mislukt.");
-        }
-
-        // Store the hash in the database
-        $database[$email] = $gehashteWachtwoord;
-
-        return "Registratie succesvol! Je wachtwoord is veilig opgeslagen.";
-
-    } catch (Exception $e) {
-        return "Fout bij registratie: " . $e->getMessage();
+try {
+    // Check for empty input
+    if (empty($email) || empty($password) || empty($passwordConfirm)) {
+        throw new Exception("All fields are required. Please do not leave any field empty.");
     }
+
+    // Check whether both passwords match (2x password input)
+    if ($password !== $passwordConfirm) {
+        throw new Exception("The passwords do not match. Please try again.");
+    }
+
+    // Prevent duplicate registration (e.g., checking if email already exists)
+    if (isset($database[$email])) {
+        throw new Exception("This email address is already registered.");
+    }
+
+    // Hash the password securely (using password_hash with automatic salt)
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+    if ($hashedPassword === false) {
+        throw new Exception("Failed to generate password hash.");
+    }
+
+    // Store the hash in the simulated database
+    $database[$email] = $hashedPassword;
+    echo "\n[SUCCESS] Registration complete! Your password has been securely hashed.\n\n";
+
+} catch (Exception $e) {
+    // Handle registration errors and inform the user
+    echo "\n[REGISTRATION ERROR] " . $e->getMessage() . "\n\n";
+    exit; // Stop script execution on registration failure
 }
 
-function logIn($email, $wachtwoord, $database) {
-    try {
-        // Check for empty login fields
-        if (empty($email) || empty($wachtwoord)) {
-            throw new Exception("Vul zowel je e-mailadres als wachtwoord in.");
-        }
 
-        // Check whether the user exists
-        if (!isset($database[$email])) {
-            throw new Exception("Onjuist e-mailadres of wachtwoord.");
-        }
+echo "=== LOGIN SYSTEM ===\n";
 
-        // Verify the password against the stored hash
-        if (password_verify($wachtwoord, $database[$email])) {
-            return "Inloggen gelukt! Welkom terug.";
-        } else {
-            throw new Exception("Onjuist e-mailadres of wachtwoord.");
-        }
+// 3. Password Verification (Asking the user again for credentials)
+$loginEmail = readline("Enter your email to log in: ");
+$loginPassword = readline("Enter your password: ");
 
-    } catch (Exception $e) {
-        return "Fout bij inloggen: " . $e->getMessage();
+try {
+    // Check for empty input during login
+    if (empty($loginEmail) || empty($loginPassword)) {
+        throw new Exception("Both email and password are required for login.");
     }
-}
 
-// Example execution
-echo registreerGebruiker("test@example.com", "Geheim123!", "Geheim123!") . "\n";
-echo logIn("test@example.com", "Geheim123!", $database) . "\n";
+    // Check whether the user exists
+    if (!isset($database[$loginEmail])) {
+        throw new Exception("Invalid email or password.");
+    }
+
+    // Verify the password against the stored hash
+    if (password_verify($loginPassword, $database[$loginEmail])) {
+        echo "\n[SUCCESS] Login successful! Welcome back, " . $loginEmail . ".\n";
+    } else {
+        throw new Exception("Invalid email or password.");
+    }
+
+} catch (Exception $e) {
+    // Handle login verification errors and inform the user
+    echo "\n[LOGIN ERROR] " . $e->getMessage() . "\n";
+}
+?>
